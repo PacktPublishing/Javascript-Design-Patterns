@@ -1,0 +1,22 @@
+{
+  "name": "ch5-react-rendering-strategies",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:client && npm run build:server && npm run build:rehydrate && npm run build:streaming-rehydrate",
+    "build:client": "esbuild client.jsx --bundle --outdir=dist --define:process.env.NODE_ENV=\\\"production\\\" --minify",
+    "build:rehydrate": "esbuild rehydrate.jsx --bundle --outdir=dist --define:process.env.NODE_ENV=\\\"production\\\" --minify",
+    "build:streaming-rehydrate": "esbuild streaming-rehydrate.jsx --bundle --outdir=dist --define:process.env.NODE_ENV=\\\"production\\\" --minify",
+    "build:server": "esbuild server.js --bundle --platform=node --outdir=dist --define:process.env.NODE_ENV=\\\"production\\\" --minify",
+    "start": "npm run build:server && npm run build:rehydrate && npm run build:streaming-rehydrate && node dist/server.js",
+    "serve": "npm run build:client -- --servedir=. --watch"
+  },
+  "dependencies": {
+    "express": "4.18.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.17.19",
+    "react-helmet": "^6.1.0"
+  }
+}

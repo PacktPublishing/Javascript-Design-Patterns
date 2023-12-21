@@ -1,0 +1,13 @@
+{
+  "name": "ch8",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "esbuild --servedir=. # using esbuild as a dev server --serve=4040",
+    "build:key": "node generate-key.js"
+  },
+  "devDependencies": {
+    "esbuild": "0.17.19"
+  }
+}

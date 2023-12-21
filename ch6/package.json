@@ -1,0 +1,8 @@
+{
+  "name": "next-zones",
+  "private": true,
+  "workspaces": [
+    "next-zones/*",
+    "islands-is-land"
+  ]
+}

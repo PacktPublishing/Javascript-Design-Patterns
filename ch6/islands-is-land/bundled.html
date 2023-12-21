@@ -1,0 +1,166 @@
+<!doctype html>
+<head>
+  <title>Islands with is-land (bundled)</title>
+  <link href="./reset.css" rel="stylesheet" />
+  <style>
+    main {
+      max-width: 720px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Fake Store with Islands (bundled)</h1>
+
+    <nav>
+      <is-land on:interaction>
+        <div id="preact-cart-island">
+          <button>My Cart</button>
+        </div>
+        <template data-island>
+          <style>
+            .cart-item-product {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            }
+
+            .cart-item-product-quantity {
+              margin-left: 0.5rem;
+            }
+
+            .cart-item-product-price {
+              margin-left: auto;
+              display: flex;
+            }
+          </style>
+          <script type="module" src="./dist/preact-cart-island.js"></script>
+        </template>
+      </is-land>
+    </nav>
+
+    <!-- Main product section -->
+    <is-land on:visible>
+      <div id="vue-product-island" class="product-container">
+        <h2 v-text="product.title"></h2>
+        <p v-text="product.description"></p>
+
+        <p v-cloak>
+          <span
+            v-text="product.price?.toLocaleString('en', { style: 'currency', currency: 'EUR'})"
+          ></span>
+          <br /><span v-text="product?.rating?.rate"></span>/5.0 (<span
+            v-text="product?.rating?.count"
+          ></span
+          >)
+        </p>
+        <img v-bind:src="product.image" width="320px" class="product-image" />
+      </div>
+
+      <style>
+        .product-container {
+          min-height: 100vh;
+          border-bottom: solid 1px black;
+        }
+
+        [v-cloak] {
+          display: none;
+        }
+      </style>
+
+      <template data-island>
+        <style>
+          .product-image {
+            min-width: 320px;
+            display: block;
+            margin: auto;
+          }
+        </style>
+        <script type="module" src="./dist/vue-product-island.js"></script>
+      </template>
+    </is-land>
+
+    <script>
+      document.addEventListener('product-category-load', (event) => {
+        const category = event.detail.category;
+        const selectedProductId = event.detail.selectedProductId;
+        Object.assign(
+          document.querySelector('#related-products-island-wrapper').dataset,
+          { category, selectedProductId },
+        );
+      });
+    </script>
+    <style>
+      #preact-related-products-island {
+        min-height: 270px;
+      }
+    </style>
+    <is-land on:visible on:idle id="related-products-island-wrapper">
+      <div id="preact-related-products-island">
+        <h3>Related Products</h3>
+        <div class="related-product-card-row">Loading...</div>
+      </div>
+      <style>
+        .related-product-card-row {
+          display: flex;
+          flex-direction: row;
+          min-height: 270px;
+          margin-bottom: 50px;
+        }
+      </style>
+      <template data-island="">
+        <style>
+          .related-product-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .related-product-card a {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            justify-content: space-between;
+          }
+
+          .related-product-card img {
+            object-fit: contain;
+            width: 100px;
+          }
+        </style>
+        <script type="module">
+          import { mountRelatedProductsIsland } from './dist/preact-related-products-island.js';
+
+          // depending on when this island loads, the required information
+          // could either be on the `is-land` element dataset or
+          // the event might not have triggered yet, handle both cases
+          const relatedProductsIslandContainer = document.querySelector(
+            '#preact-related-products-island',
+          );
+          const { selectedProductId, category } = document.querySelector(
+            '#related-products-island-wrapper',
+          ).dataset;
+          mountRelatedProductsIsland(
+            relatedProductsIslandContainer,
+            category,
+            selectedProductId,
+            'data-*',
+          );
+
+          document.addEventListener('product-category-load', (event) => {
+            const category = event.detail.category;
+            const selectedProductId = event.detail.selectedProductId;
+            mountRelatedProductsIsland(
+              relatedProductsIslandContainer,
+              category,
+              selectedProductId,
+              'custom-event',
+            );
+          });
+        </script>
+      </template>
+    </is-land>
+  </main>
+</body>
+<script type="module" src="./dist/is-land.js"></script>

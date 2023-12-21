@@ -1,0 +1,116 @@
+<!doctype html>
+<link rel="stylesheet" href="./reset.css" />
+<h2>Payment iframe</h2>
+
+<form>
+  <input type="hidden" name="price" />
+  <input type="hidden" name="currency" />
+  <div>
+    <label for="cardnumber">Card Number</label>
+    <input required="required" name="cardnumber" id="cardnumber" type="text" />
+  </div>
+  <div>
+    <label for="cardexpiry">Expiry Date</label>
+    <input required="required" name="cardexpiry" id="cardexpiry" type="text" />
+  </div>
+  <div>
+    <label for="cardcvv">CVV</label>
+    <input name="cardcvv" id="cardcvv" type="text" />
+  </div>
+</form>
+
+<div>
+  <h3>Messages</h3>
+  <pre><code></code></pre>
+</div>
+
+<script>
+  async function encryptToBase64(message) {
+    const msgUint8 = new TextEncoder().encode(message);
+    const publicKeyExport = await fetch('./public-key.json').then((res) =>
+      res.json(),
+    );
+    const publicKey = await crypto.subtle.importKey(
+      'jwk',
+      publicKeyExport,
+      {
+        name: 'RSA-OAEP',
+        hash: 'SHA-256',
+      },
+      true,
+      ['encrypt'],
+    );
+    const encryptedBuffer = await crypto.subtle.encrypt(
+      {
+        name: 'RSA-OAEP',
+      },
+      publicKey,
+      msgUint8,
+    );
+    return btoa(
+      // ArrayBuffer, not iterable
+      [...new Uint8Array(encryptedBuffer)]
+        // map to utf8 characters
+        .map((el) => String.fromCharCode(el))
+        .join(''),
+      // convert to base64 (btoa call)
+    );
+  }
+  const allowedMessageOrigins = ['http://127.0.0.1:8000'];
+  window.addEventListener('message', async (event) => {
+    if (!allowedMessageOrigins.includes(event.origin)) {
+      console.warn(
+        `Dropping message due to non-allowlisted origin ${event.origin}`,
+        event,
+      );
+      return;
+    }
+    document.querySelector('pre code').innerText += `Received: ${event.data}\n`;
+    const { type, data } = JSON.parse(event.data);
+    switch (type) {
+      case 'submit': {
+        $form = document.querySelector('form');
+
+        const isFormValid = $form.reportValidity();
+        if (!isFormValid) {
+          const fields = [...$form];
+          const invalidFields = fields
+            .filter((f) => f.type !== 'hidden' && !f.validity?.valid)
+            .map((f) => f.name);
+          const message = JSON.stringify({
+            type: 'validation-error',
+            data: invalidFields,
+          });
+          window.parent.postMessage(message);
+          document.querySelector('pre code').innerText += `Sent: ${message}\n`;
+          return;
+        }
+
+        const data = new FormData($form);
+        const serializableData = Object.fromEntries(data.entries());
+        const message = JSON.stringify({
+          type: 'submit-response',
+          data: await encryptToBase64(JSON.stringify(serializableData)),
+        });
+        window.parent.postMessage(message);
+        document.querySelector('pre code').innerText += `Sent: ${message}\n`;
+        return;
+      }
+      case 'init': {
+        document.querySelector('[name=price]').value = data.price;
+        document.querySelector('[name=currency]').value = data.currency;
+        return;
+      }
+      default: {
+        document.querySelector(
+          'pre code',
+        ).innerText += `[UNHANDLED] Received: ${event.data}\n`;
+        return;
+      }
+    }
+  });
+
+  const initMessage = JSON.stringify({ type: 'init' });
+  document.querySelector('pre code').innerText += `Sent: ${initMessage}\n`;
+  window.parent.postMessage(initMessage);
+</script>

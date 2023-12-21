@@ -1,0 +1,39 @@
+<!doctype html>
+<head>
+  <title>
+    Chapter 10 - Asset loading strategies and executing code off the main thread
+  </title>
+  <link rel="preconnect" href="https://example.com" />
+  <!-- @todo should be a nested resource, maybe `main.js` loading another module -->
+  <link rel="preload" href="async.js" as="script" />
+  <link rel="modulepreload" href="module-async.js" as="script" />
+  <!-- note `prefetch` has no effect for the current page load -->
+  <link rel="stylesheet" href="./reset.css" />
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon" />
+</head>
+<body>
+  <script>
+    (() => {
+      const node = document.createElement('p');
+      node.innerText = 'inline: script 1 executed';
+      document.body.appendChild(node);
+    })();
+  </script>
+  <script type="module">
+    const node = document.createElement('p');
+    node.innerText = 'inline: type="module" executed';
+    document.body.appendChild(node);
+  </script>
+  <script src="./module-async.js" type="module" async></script>
+  <script src="./module.js" type="module"></script>
+  <script src="./defer.js" defer></script>
+  <script src="./async.js" async></script>
+  <script src="./script.js"></script>
+  <script>
+    (() => {
+      const node = document.createElement('p');
+      node.innerText = 'inline: script 2 executed';
+      document.body.appendChild(node);
+    })();
+  </script>
+</body>

@@ -1,0 +1,98 @@
+<!doctype html>
+<title>Chapter 8 - Event-driven programming patterns</title>
+<link rel="stylesheet" href="./reset.css" />
+
+<form>
+  <h2>Checkout form</h2>
+  <div>
+    <span>Price: <span>200</span>€</span>
+    <!-- <span>Price: <span data-price-display>200</span>€</span>
+    <button type="button" id="trigger">Double price</button> -->
+  </div>
+  <div>
+    <h3>Customer Details</h3>
+    <div>
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" required="required" />
+    </div>
+  </div>
+  <div>
+    <iframe id="payment-capture" width="100%" height="300px"></iframe>
+  </div>
+  <div>
+    <button type="submit">Pay</button>
+  </div>
+</form>
+
+<script>
+  // handle receiving messages from iframe -> parent
+  const allowedMessageOrigins = ['http://127.0.0.1:8000'];
+  window.addEventListener('message', (event) => {
+    if (!allowedMessageOrigins.includes(event.origin)) {
+      console.warn(
+        `Dropping message due to non-allowlisted origin ${event.origin}`,
+        event,
+      );
+      return;
+    }
+    if (event?.data) {
+      const { type, data } = JSON.parse(event?.data);
+      switch (type) {
+        case 'init': {
+          console.log('Parent received init message');
+          return;
+        }
+        case 'validation-error': {
+          console.log('Received message', type, data);
+          return;
+        }
+        case 'submit-response': {
+          console.log('received submit-response');
+          console.log(event.data);
+          const formData = new FormData(document.querySelector('form'));
+          const pageData = Object.fromEntries(formData.entries());
+          return;
+        }
+      }
+    }
+  });
+
+  const $paymentCaptureIframe = document.querySelector('#payment-capture');
+
+  // on iframe load, we'll send a message
+  $paymentCaptureIframe.addEventListener('load', () => {
+    $paymentCaptureIframe.contentWindow.postMessage(
+      JSON.stringify({ type: 'init', data: { price: 20000, currency: 'EUR' } }),
+    );
+  });
+
+  // initialise the iframe by setting the src
+  $paymentCaptureIframe.setAttribute(
+    'src',
+    new URL('/frame-content.html', window.location.origin),
+  );
+
+  // const $priceDisplay = document.querySelector('[data-price-display]');
+  // const initialPrice =
+  //   parseInt(document.querySelector('[data-price-display]').innerText, 10) *
+  //   100;
+  // let doubledPrice = initialPrice;
+  // document.querySelector('#trigger').addEventListener('click', () => {
+  //   doubledPrice = doubledPrice * 2;
+  //   $priceDisplay.innerText = doubledPrice / 100;
+  //   $paymentCaptureIframe.contentWindow.postMessage(
+  //     JSON.stringify({
+  //       type: 'init',
+  //       data: { price: doubledPrice, currency: 'EUR' },
+  //     }),
+  //   );
+  // });
+  document.querySelector('form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    $paymentCaptureIframe.contentWindow.postMessage(
+      JSON.stringify({
+        type: 'submit',
+      }),
+    );
+  });
+</script>

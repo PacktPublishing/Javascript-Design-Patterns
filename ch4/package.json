@@ -1,0 +1,24 @@
+{
+  "name": "js-design-patterns-ch4",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "parcel serve ./index.html",
+    "dev:mocked": "ENABLE_MOCKS=true npm run dev",
+    "mocks": "polly listen -d ../../../recordings"
+  },
+  "devDependencies": {
+    "@pollyjs/adapter-fetch": "6.0.5",
+    "@pollyjs/cli": "6.0.1",
+    "@pollyjs/core": "6.0.5",
+    "@pollyjs/persister-rest": "6.0.5",
+    "parcel": "2.10.0",
+    "process": "0.11.10",
+    "uuid": "9.0.0"
+  },
+  "dependencies": {
+    "formik": "2.2.9",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
+}

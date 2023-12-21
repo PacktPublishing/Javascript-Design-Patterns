@@ -1,0 +1,423 @@
+<!doctype html>
+<head>
+  <title>Islands with is-land</title>
+  <!-- local/offline import map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "@11ty/is-land/is-land.js": "./node_modules/@11ty/is-land/is-land.js",
+        "htm/preact": "./node_modules/htm/preact/index.module.js",
+        "htm": "./node_modules/htm/dist/htm.mjs",
+        "preact": "./node_modules/preact/dist/preact.mjs",
+        "preact/hooks": "./node_modules/preact/hooks/dist/hooks.mjs",
+        "vue": "./node_modules/vue/dist/vue.esm-browser.prod.js",
+        "_vue": "./node_modules/vue/dist/vue.esm-browser.js"
+      }
+    }
+  </script>
+  <!-- remote import map -->
+  <!--
+    <script type="importmap">
+    {
+      "imports": {
+        "@11ty/is-land/is-land.js": "https://unpkg.com/@11ty/is-land@4.0.0/is-land.js",
+        "htm/preact": "https://unpkg.com/htm@3.1.1/preact/index.module.js",
+        "htm": "https://unpkg.com/htm@3.1.1/dist/htm.mjs",
+        "preact": "https://unpkg.com/preact@10.15.1/dist/preact.mjs",
+        "vue": "https://unpkg.com/vue@3.2.36/dist/vue.esm-browser.prod.js"
+      }
+    }
+  </script>
+  -->
+  <link href="./reset.css" rel="stylesheet" />
+  <style>
+    main {
+      max-width: 720px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Fake Store with Islands</h1>
+
+    <nav>
+      <is-land on:interaction>
+        <div id="preact-cart-island">
+          <button>My Cart</button>
+        </div>
+        <template data-island>
+          <style>
+            .cart-item-product {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            }
+            .cart-item-product-quantity {
+              margin-left: 0.5rem;
+            }
+            .cart-item-product-price {
+              margin-left: auto;
+              display: flex;
+            }
+          </style>
+          <script type="module">
+            import { resetClientSidePolly } from './dist/polly-entrypoint.js';
+            import { html, render } from 'htm/preact';
+            import { useState, useEffect } from 'preact/hooks';
+
+            function CartContents(props) {
+              const { cart, productsById } = props;
+              return html`<ul>
+                ${cart.products.map((product) => {
+                  const lineItemQueryParams = new URLSearchParams([
+                    ['productId', product.productId],
+                    ['cartId', cart.id],
+                  ]);
+                  const fullProductInformation =
+                    productsById[product.productId];
+                  return html`<li
+                    class="cart-item-product"
+                    key=${product.productId}
+                  >
+                    ${html`<a href=${'?' + lineItemQueryParams.toString()}
+                      >${fullProductInformation?.title}</a
+                    >`}
+                    <span class="cart-item-product-quantity"
+                      >x ${product.quantity}</span
+                    >
+                    <span class="cart-item-product-price">
+                      Price:${' '}${(
+                        product.quantity * fullProductInformation?.price
+                      ).toLocaleString(navigator.language, {
+                        style: 'currency',
+                        currency: 'EUR',
+                      })}
+                    </span>
+                  </li>`;
+                })}
+                <li class="cart-item-product">
+                  <strong class="cart-item-product-price">
+                    Total:${' '}
+                    ${cart.products
+                      .reduce((acc, curr) => {
+                        const fullProductInformation =
+                          productsById[curr.productId];
+                        return (
+                          acc + curr.quantity * fullProductInformation.price
+                        );
+                      }, 0)
+                      .toLocaleString(navigator.language, {
+                        style: 'currency',
+                        currency: 'EUR',
+                      })}
+                  </strong>
+                </li>
+              </ul> `;
+            }
+
+            function CartContainer(props) {
+              const cartId = props.id ?? 1;
+              const [open, setOpen] = useState(true);
+              const [isLoading, setIsLoading] = useState(false);
+              const [cartContents, setCartContents] = useState({
+                cart: null,
+                productsById: null,
+              });
+              useEffect(async () => {
+                resetClientSidePolly(`ch6-is-lands-cart-${cartId}`);
+                setIsLoading(true);
+                const cart = await fetch(
+                  `https://fakestoreapi.com/carts/${cartId}`,
+                ).then((res) => res.json());
+                if (!cart?.products) {
+                  return {
+                    props: {
+                      id: cartId,
+                    },
+                  };
+                }
+                /** @type {Record<number, import('../../../../fakestoreapi').Product>} */
+                const productsById = (
+                  await Promise.all(
+                    cart.products.map(async (product) => {
+                      return await fetch(
+                        `https://fakestoreapi.com/products/${product.productId}`,
+                      ).then((res) => res.json());
+                    }),
+                  )
+                ).reduce((acc, curr) => {
+                  acc[curr.id] = curr;
+                  return acc;
+                }, {});
+
+                setCartContents({
+                  cart,
+                  productsById,
+                });
+                setIsLoading(false);
+
+                resetClientSidePolly(`ch6-is-lands-cart-${cartId}`, 'STOP');
+              }, [cartId]);
+
+              const cartItemCount = cartContents?.cart?.products?.length;
+
+              return html`<div>
+                <button onClick=${() => setOpen(!open)}>
+                  My Cart
+                  ${cartItemCount !== undefined ? ` (${cartItemCount})` : ''}
+                </button>
+                ${open && isLoading && html`<div>Loading...</div>`}
+                ${open &&
+                !isLoading &&
+                cartContents.cart &&
+                cartContents.productsById &&
+                html`<${CartContents}
+                  cart=${cartContents.cart}
+                  productsById=${cartContents.productsById}
+                />`}
+              </div>`;
+            }
+
+            const appContainer = document.querySelector('#preact-cart-island');
+            render(
+              html`<${CartContainer}
+                id=${new URLSearchParams(window.location.search).get('cartId')}
+              />`,
+              appContainer,
+              appContainer,
+            );
+          </script>
+        </template>
+      </is-land>
+    </nav>
+
+    <!-- Main product section -->
+    <is-land on:visible>
+      <div id="vue-product-island" class="product-container">
+        <h2 v-text="product.title"></h2>
+        <p v-text="product.description"></p>
+
+        <p v-cloak>
+          <span
+            v-text="product.price?.toLocaleString('en', { style: 'currency', currency: 'EUR'})"
+          ></span>
+          <br /><span v-text="product?.rating?.rate"></span>/5.0 (<span
+            v-text="product?.rating?.count"
+          ></span
+          >)
+        </p>
+        <img v-bind:src="product.image" width="320px" class="product-image" />
+      </div>
+
+      <style>
+        .product-container {
+          min-height: 100vh;
+          border-bottom: solid 1px black;
+        }
+        [v-cloak] {
+          display: none;
+        }
+      </style>
+
+      <template data-island>
+        <style>
+          .product-image {
+            min-width: 320px;
+            display: block;
+            margin: auto;
+          }
+        </style>
+        <script type="module">
+          import { createApp } from 'vue';
+          import { resetClientSidePolly } from './dist/polly-entrypoint.js';
+
+          createApp({
+            async mounted() {
+              this.loading = true;
+              resetClientSidePolly(`ch6-is-lands-product-${this.productId}`);
+              const product = await fetch(
+                `https://fakestoreapi.com/products/${this.productId}`,
+              ).then((res) => res.json());
+              this.product = product;
+              this.loading = false;
+              resetClientSidePolly(
+                `ch6-is-lands-product-${this.productId}`,
+                'STOP',
+              );
+              document.dispatchEvent(
+                new CustomEvent('product-category-load', {
+                  detail: {
+                    category: this.product.category,
+                    selectedProductId: this.product.id,
+                  },
+                }),
+              );
+            },
+            data: () => ({
+              productId:
+                new URLSearchParams(window.location.search).get('productId') ||
+                '1',
+              loading: true,
+              product: {},
+            }),
+          }).mount('#vue-product-island');
+        </script>
+      </template>
+    </is-land>
+
+    <script>
+      document.addEventListener('product-category-load', (event) => {
+        const category = event.detail.category;
+        const selectedProductId = event.detail.selectedProductId;
+        Object.assign(
+          document.querySelector('#related-products-island-wrapper').dataset,
+          { category, selectedProductId },
+        );
+      });
+    </script>
+
+    <is-land on:visible on:idle id="related-products-island-wrapper">
+      <div id="preact-related-products-island">
+        <h3>Related Products</h3>
+        <div class="related-product-card-row">Loading...</div>
+      </div>
+      <style>
+        .related-product-card-row {
+          display: flex;
+          flex-direction: row;
+          min-height: 270px;
+          margin-bottom: 50px;
+        }
+      </style>
+      <template data-island="">
+        <style>
+          .related-product-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+          }
+          .related-product-card a {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            justify-content: space-between;
+          }
+          .related-product-card img {
+            object-fit: contain;
+            width: 100px;
+          }
+        </style>
+        <script type="module">
+          import { resetClientSidePolly } from './dist/polly-entrypoint.js';
+          import { html, render } from 'htm/preact';
+          import { useState, useEffect } from 'preact/hooks';
+
+          function RelatedProducts({ selectedProductId, category, from }) {
+            const [relatedProducts, setRelatedProducts] = useState([]);
+            useEffect(async () => {
+              resetClientSidePolly(
+                `related-products-${encodeURIComponent(category)}`,
+              );
+              const productsInCategory = await fetch(
+                `https://fakestoreapi.com/products/category/${encodeURIComponent(
+                  category,
+                )}`,
+              ).then((res) => res.json());
+
+              resetClientSidePolly(`related-products-${category}`, 'STOP');
+
+              const topRelatedProductsByRating = productsInCategory
+                .filter((el) => {
+                  return el.id !== parseInt(selectedProductId, 10);
+                })
+                .sort((a, b) => b.rating.rate - a.rating.rate);
+
+              setRelatedProducts(topRelatedProductsByRating.slice(0, 3));
+            }, [selectedProductId, category]);
+
+            return html`<div>
+              <h3>Related Products (from ${from})</h3>
+              <ul class="related-product-card-row">
+                ${relatedProducts.map((product) => {
+                  const productSearchParams = new URLSearchParams([
+                    ['productId', product.id],
+                  ]);
+                  const currentCartId = new URLSearchParams(
+                    window.location.search,
+                  ).get('cartId');
+                  if (currentCartId) {
+                    productSearchParams.set('cartId', currentCartId);
+                  }
+                  return html`<li class="related-product-card">
+                    <a href=${'?' + productSearchParams.toString()}>
+                      <h4>${product.title}</h4>
+                      <p>
+                        ${product.price.toLocaleString(navigator.language, {
+                          style: 'currency',
+                          currency: 'EUR',
+                        })}
+                      </p>
+                      <img height="100px" src=${product.image} />
+                      <p>
+                        ${product.rating.rate}/5.0 (${product.rating.count})
+                      </p>
+                    </a>
+                  </li>`;
+                })}
+              </ul>
+            </div>`;
+          }
+
+          const relatedProductsIslandContainer = document.querySelector(
+            '#preact-related-products-island',
+          );
+          function mountRelatedProductsIsland(
+            relatedProductsIslandContainer,
+            category,
+            selectedProductId,
+            from,
+          ) {
+            if (category && selectedProductId) {
+              render(
+                html`<${RelatedProducts}
+                  category=${category}
+                  selectedProductId=${selectedProductId}
+                  from=${from}
+                />`,
+                relatedProductsIslandContainer,
+                relatedProductsIslandContainer,
+              );
+            }
+          }
+
+          const { selectedProductId, category } = document.querySelector(
+            '#related-products-island-wrapper',
+          ).dataset;
+
+          mountRelatedProductsIsland(
+            relatedProductsIslandContainer,
+            category,
+            selectedProductId,
+            'data-*',
+          );
+
+          document.addEventListener('product-category-load', (event) => {
+            const category = event.detail.category;
+            const selectedProductId = event.detail.selectedProductId;
+
+            mountRelatedProductsIsland(
+              relatedProductsIslandContainer,
+              category,
+              selectedProductId,
+              'custom-event',
+            );
+          });
+        </script>
+      </template>
+    </is-land>
+  </main>
+</body>
+<script type="module">
+  import '@11ty/is-land/is-land.js';
+</script>

@@ -1,0 +1,59 @@
+<!doctype html>
+<form id="login-form">
+  <div>
+    <input type="text" name="username" />
+  </div>
+  <div>
+    <input type="password" name="password" />
+  </div>
+  <div>
+    <button type="submit">Login</button>
+  </div>
+</form>
+<pre><code id="response-output"></code></pre>
+
+<script type="module">
+  const formElement = document.getElementById('login-form');
+  const responseOutputElement = document.getElementById('response-output');
+
+  formElement.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const { username, password } = Object.fromEntries(
+      [...e.target.elements]
+        .filter((el) => Boolean(el.name))
+        .map((el) => [el.name, el.value]),
+    );
+    fetch('https://fakestoreapi.com/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((res) => res.json())
+      .then((responseData) => {
+        const { token } = responseData;
+        const [jwtHeader, jwtPayload] = token
+          .split('.')
+          // JWT is {header}.{payload}.{signature}, ignore the signature
+          .slice(0, 2)
+          .map((encodedJwtPart) => JSON.parse(atob(encodedJwtPart)));
+        return jwtPayload;
+      })
+      .then(async (decodedToken) => {
+        const userId = decodedToken.sub;
+        const userCartsResponse = await fetch(
+          `https://fakestoreapi.com/carts/user/${userId}?sort=desc`,
+        );
+        const userCartsData = await userCartsResponse.json();
+        responseOutputElement.innerText = JSON.stringify(
+          userCartsData,
+          null,
+          2,
+        );
+      });
+  });
+</script>
