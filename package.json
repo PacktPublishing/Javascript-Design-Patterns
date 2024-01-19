@@ -22,12 +22,7 @@
     "ch9:next-script": "npm --prefix ch10/next-script-strategy run dev",
     "ch10:asset-load": "npm run --prefix ch10/asset-load-attributes run dev",
     "ch10:next-script": "npm --prefix ch10/next-script-strategy run dev",
-    "format": "prettier --write .",
-    "pre-commit": "lint-staged",
-    "prepare": "husky install"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,css,md,json,html}": "prettier --write"
+    "format": "prettier --write ."
   },
   "prettier": {
     "singleQuote": true
@@ -40,9 +35,7 @@
     "@pollyjs/cli": "6.0.6",
     "@pollyjs/core": "6.0.6",
     "@pollyjs/persister-fs": "6.0.6",
-    "husky": "8.0.0",
     "jwt-decode": "3.1.2",
-    "lint-staged": "13.0.4",
     "prettier": "3.0.3"
   },
   "workspaces": [
