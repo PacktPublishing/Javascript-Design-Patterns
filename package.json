@@ -18,9 +18,9 @@
     "ch6:zones": "npm --prefix ch6/next-zones run dev",
     "ch7": "npm start ch7",
     "ch8": "npm --prefix ch8 run dev",
-    "ch9:asset-load": "npm run --prefix ch10/asset-load-attributes run dev",
+    "ch9:asset-load": "npm --prefix ch10/asset-load-attributes run dev",
     "ch9:next-script": "npm --prefix ch10/next-script-strategy run dev",
-    "ch10:asset-load": "npm run --prefix ch10/asset-load-attributes run dev",
+    "ch10:asset-load": "npm --prefix ch10/asset-load-attributes run dev",
     "ch10:next-script": "npm --prefix ch10/next-script-strategy run dev",
     "format": "prettier --write ."
   },
