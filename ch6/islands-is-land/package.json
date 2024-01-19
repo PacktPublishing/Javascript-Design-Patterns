@@ -10,13 +10,13 @@
     "build:preact-related-products": "esbuild ./src/preact-related-products-island.jsx --jsx-import-source=preact --jsx=automatic --bundle --outdir=dist --format=esm --minify",
     "build": "npm run build:polly && npm run build:is-land && npm run build:preact-cart && npm run build:vue-product && npm run build:preact-related-products",
     "predev": "npm run build",
-    "dev": "concurrently \"PORT=3001 serve .\" \"npm:mocks\"",
+    "dev": "concurrently \"cross-env PORT=3001 serve .\" \"npm:mocks\"",
     "mocks": "polly listen -d ./recordings"
   },
   "devDependencies": {
-    "concurrently": "8.2.0",
+    "concurrently": "8.2.2",
     "esbuild": "0.18.11",
-    "serve": "14.2.0"
+    "serve": "14.2.1"
   },
   "dependencies": {
     "@11ty/is-land": "4.0.0",

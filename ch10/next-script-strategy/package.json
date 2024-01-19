@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "PORT=3333 next dev",
+    "dev": "cross-env PORT=3333 next dev",
     "build": "next build",
-    "start": "PORT=3333 next start"
+    "start": "cross-env PORT=3333 next start"
   },
   "dependencies": {
     "next": "13.5.4",

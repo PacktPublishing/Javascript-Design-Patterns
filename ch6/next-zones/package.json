@@ -1,9 +1,9 @@
 {
   "private": "true",
   "scripts": {
-    "dev": "concurrently -k \"npm run dev --prefix ./root\" \"PORT=3001 npm run dev --prefix ./search\" \"PORT=3002 npm run dev --prefix ./checkout\""
+    "dev": "concurrently -k \"npm run dev --prefix ./root\" \"cross-env PORT=3001 npm run dev --prefix ./search\" \"cross-env PORT=3002 npm run dev --prefix ./checkout\""
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "8.2.2"
   }
 }

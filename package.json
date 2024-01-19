@@ -12,14 +12,14 @@
     "ch2": "npm start ch2",
     "ch3": "npm start ch3",
     "ch4": "npm --prefix ch4 run dev",
-    "ch5:react-rendering": "npm --prefix ch5/react-rendering-strategies run dev",
+    "ch5:react-rendering": "npm --prefix ch5/react-rendering-strategies run serve",
     "ch5:next-static": "npm --prefix ch5/next-static-rendering run build && npm --prefix ch5/next-static-rendering run start",
     "ch6:islands": "npm --prefix ch6/islands-is-land run dev",
     "ch6:zones": "npm --prefix ch6/next-zones run dev",
     "ch7": "npm start ch7",
     "ch8": "npm --prefix ch8 run dev",
-    "ch9:asset-load": "npm --prefix ch10/asset-load-attributes run dev",
-    "ch9:next-script": "npm --prefix ch10/next-script-strategy run dev",
+    "ch9:dynamic-import": "npm --prefix ch9/dynamic-import-vite run dev",
+    "ch9:next-script": "npm --prefix ch9/next-route-based-splitting run dev",
     "ch10:asset-load": "npm --prefix ch10/asset-load-attributes run dev",
     "ch10:next-script": "npm --prefix ch10/next-script-strategy run dev",
     "format": "prettier --write ."
@@ -35,6 +35,7 @@
     "@pollyjs/cli": "6.0.6",
     "@pollyjs/core": "6.0.6",
     "@pollyjs/persister-fs": "6.0.6",
+    "cross-env": "^7.0.3",
     "jwt-decode": "3.1.2",
     "prettier": "3.0.3"
   },
@@ -42,6 +43,7 @@
     ".",
     "./ch4",
     "./ch5/*",
+    "./ch6/*",
     "./ch8",
     "./ch9/*",
     "./ch10/*"
