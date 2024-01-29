@@ -8,10 +8,10 @@
     "mocks": "polly listen -d ../../../recordings"
   },
   "devDependencies": {
-    "@pollyjs/adapter-fetch": "6.0.5",
-    "@pollyjs/cli": "6.0.1",
-    "@pollyjs/core": "6.0.5",
-    "@pollyjs/persister-rest": "6.0.5",
+    "@pollyjs/adapter-fetch": "6.0.6",
+    "@pollyjs/cli": "6.0.6",
+    "@pollyjs/core": "6.0.6",
+    "@pollyjs/persister-rest": "6.0.6",
     "parcel": "2.10.0",
     "process": "0.11.10",
     "uuid": "9.0.0"
